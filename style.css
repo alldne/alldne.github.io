@@ -1,3 +1,7 @@
+html {
+  font-family: 'Bitter', serif;
+}
+
 .center {
   position: absolute;
   top: 50%;
