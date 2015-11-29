@@ -4,6 +4,14 @@ html {
   padding: 40px;
 }
 
+a:link {
+  color: #aaaaaa
+}
+
+a:visited {
+  color: #555555
+}
+
 @media (min-device-width: 500px) {
   html {
     font-size: 17px;
