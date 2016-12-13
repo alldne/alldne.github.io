@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>타입클래스 소개</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# 타입클래스 소개
+하스켈 학교 세미나
+
+정용욱
+
+---
+
+# showBool
+우리에게 친숙한 Bool type이 있습니다.
+
+이것을 `String`으로 바꾸는 함수를 생각해봅시다.
+```haskell
+showBool :: Bool -> String
+showBool True = "True"
+showBool False = "False"
+```
+
+---
+
+# showInt
+우리에게 친숙한 또 다른 타입 `Int`가 있습니다.
+
+이것을 `String`으로 바꾸는 함수를 생각해봅시다.
+```haskell
+showInt :: Int -> String
+showInt 0 = "0"
+showInt 1 = "1"
+showInt 2 = "2"
+showInt 3 = "3"
+showInt 4 = "4"
+showInt 5 = "5"
+showInt 6 = "6"
+showInt 7 = "7"
+showInt 8 = "8"
+showInt 9 = "9"
+showInt x = if x < 0
+            then "-" ++ showInt (negate x)
+            else showInt (x `div` 10) ++ showInt (x `mod` 10)
+```
+
+---
+
+# showString
+
+이번에는 우리에게 친숙한 `String` 타입의 차례입니다.
+
+```haskell
+-- import Prelude hiding (showString)
+
+showString :: String -> String
+showString = id
+```
+
+---
+
+# 이제는 자기소개다!
+
+우리에게 친숙한 `Bool`, `Int`, `String` 타입을 각각 `String`으로 바꿀 수 있게 되었습니다
+
+이번엔 새로운 함수를 생각해볼까요?
+
+타입의 자기소개 문장을 만들어내는 함수를 생각해보겠습니다
+```haskell
+say :: Bool -> String
+say x = "안녕 나는 \"" ++ (showBool x) ++ "\"(이)라고 해"
+```
+
+<img src="http://deji.chez.com/dessins/pp2.gif" width="200px" style="display: block; margin: 0 auto">
+
+하지만 이 함수는 우리의 친구 `Int`나 `String`에 대해선 아쉽게도 동작하지 않는군요..
+
+다른 함수를 만들어줘야겠습니다.
+
+---
+
+# 다른 함수를 만들어주자
+
+`Int`와 `String`에 대해서도 자기소개 함수를 만들어 줍시다.
+
+```haskell
+say :: Int -> String
+say x = "안녕 나는 \"" ++ (showInt x) ++ "\"(이)라고 해"
+
+say :: String -> String
+say x = "안녕 나는 \"" ++ (showString x) ++ "\"(이)라고 해"
+```
+<img src="http://bimage.interpark.com/milti/renewPark/evtboard/20111006092921210.jpg" width="300px" style="display: block; margin: 0 auto">
+
+흠.. 하지만 이 코드는 컴파일되지 않습니다.
+
+`say`라는 함수는 한 가지만 존재할 수 있기 때문입니다.
+
+---
+
+# 문제 해결?
+
+그렇다면 이름을 각각 이렇게 바꿔주면 컴파일이 되겠군요.
+
+```haskell
+sayBool :: Bool -> String
+sayBool x = "안녕 나는 \"" ++ (showBool x) ++ ""\"(이)라고 해"
+
+sayInt :: Int -> String
+sayInt x = "안녕 나는 \"" ++ (showInt x) ++ "\"(이)라고 해"
+
+sayString :: String -> String
+sayString x = "안녕 나는 \"" ++ (showString x) ++ "\"(이)라고 해"
+```
+
+_하지만 조금 회의감이 드는 코드입니다.._
+
+---
+
+# 회의감의 원인은..
+
+상당히 비슷한 일을 하는 코드를 반복하고 있습니다.
+
+```haskell
+sayBool :: Bool -> String
+sayBool x = "안녕 나는 \"" ++ (showBool x) ++ ""\"(이)라고 해"
+
+sayInt :: Int -> String
+sayInt x = "안녕 나는 \"" ++ (showInt x) ++ "\"(이)라고 해"
+
+sayString :: String -> String
+sayString x = "안녕 나는 \"" ++ (showString x) ++ "\"(이)라고 해"
+```
+
+다른 점은?
+- 파라미터의 타입이 다르다
+- 사용하는 `show`의 구현체(`showXXX`)가 다르다
+
+=> `say`가 아무 타입이나 받을 수 있다면 간편하지 않을까요?
+```haskell
+say :: a -> String
+say x = "안녕 나는 \"" ++ (show??? x) ++ "\"(이)라고 해"
+```
+
+---
+
+# `a -> String`
+
+여기에도 어려움은 있습니다. 어떤 `showXXX`를 사용해야할까요?
+
+```haskell
+say :: a -> String
+say x = "안녕 나는 \"" ++ (show??? x) ++ "\"(이)라고 해"
+```
+
+`a`가 무슨 타입인지 모르기 때문에 어떤 `showXXX`를 사용해야 할지 알 수 없습니다.
+
+`a`가 무슨 타입인지 모르면 거의 아무것도 할 수 없습니다.
+
+무슨 타입인지 몰라도 할 수 있는 일은 무엇이 있을까요?
+
+---
+
+# 타입을 모른다면 할 수 있는 일은?
+
+`foo`의 구현을 떠올려봅시다.
+```haskell
+foo :: Int -> Int -> Int
+```
+
+---
+
+# 타입을 모른다면 할 수 있는 일은?
+
+`foo`의 구현을 떠올려봅시다.
+```haskell
+foo :: Int -> Int -> Int
+```
+
+```haskell
+foo a b = a + b
+foo a _ = a * 2
+foo _ _ = 3
+```
+
+---
+# 타입을 모른다면 할 수 있는 일은?
+
+`foo`의 구현을 떠올려봅시다.
+```haskell
+foo :: String -> Int
+```
+---
+# 타입을 모른다면 할 수 있는 일은?
+
+`foo`의 구현을 떠올려봅시다.
+```haskell
+foo :: String -> Int
+```
+
+```haskell
+foo a = length a
+foo _ = 2
+```
+---
+# 타입을 모른다면 할 수 있는 일은?
+
+`foo`의 구현을 떠올려봅시다.
+```haskell
+foo :: a -> Int
+```
+```haskell
+foo :: Int -> a
+```
+```haskell
+foo :: a -> a
+```
+```haskell
+foo :: a -> a -> a
+```
+---
+# 타입을 모른다면 할 수 있는 일은?
+
+`foo`의 구현을 떠올려봅시다.
+```haskell
+foo :: a -> Int
+```
+```haskell
+foo :: Int -> a
+```
+```haskell
+foo :: a -> a
+```
+```haskell
+foo :: a -> a -> a
+```
+
+_타입을 모른다면 할 수 있는 일은 극히 제한적입니다._
+---
+# `say`, revisited
+
+```haskell
+say :: a -> String
+say x = "안녕 나는 \"" ++ (show??? x) ++ "\"(이)라고 해"
+```
+
+( ... `a`를 가지고 할 수 있는 일은 없다)
+
+<center>
+<img src="https://oriwiki.net/images/0/0b/%EC%A0%95%EB%8C%80%EB%A7%8C.jpg">
+</center>
+
+- `a`는 임의의 타입
+- 하지만 우리의 뇌 속에서만큼은 임의의 타입이 아닙니다
+- `showXXX`를 구현한 `Bool`, `Int`, `String`만을 일컬을 수 있다면..
+
+---
+# Finally, Typeclass
+
+타입클래스는 이종의 데이터 타입들을 일반화하고 공통된 속성을 다룰 수 있도록 해줍니다.
+
+타입클래스는 (아까 마주쳤던) 아래 문제를 해결해줍니다.
+- 파라미터의 타입이 다르다
+- 사용하는 `show`의 구현체(`showXXX`)가 다르다
+
+`showXXX`를 구현한 타입(`Bool`, `Int`, `String`)들을 묶어 `Show`라는 타입클래스로 지칭해봅시다.
+
+이것을 어떻게 표현할까요?
+
+---
+
+# Typeclass Syntax
+
+```haskell
+class Show a where
+    show :: a -> String
+```
+`a`는 타입 변수(type variable)입니다.
+
+예컨데, `Show Int`라는 타입클래스의 인스턴스는 `show :: Int -> String`의 구현을 담게 됩니다.
+
+---
+# Typeclass Syntax
+`showBool`을 타입클래스로 옮겨와 보겠습니다.
+```haskell
+showBool :: Bool -> String
+showBool True = “True”
+showBool False = “False”
+```
+
+```haskell
+instance Show Bool where
+    show True = “True”
+    show False = “False”
+```
+
+---
+# Typeclass Syntax
+`showInt`를 타입클래스로 옮겨와 보겠습니다.
+```haskell
+showInt :: Int -> String
+showInt 0 = "0"
+showInt 1 = "1"
+showInt 2 = "2"
+-- ...
+showInt 9 = "9"
+showInt x = if x < 0
+            then "-" ++ showInt (negate x)
+            else showInt (x `div` 10) ++ showInt (x `mod` 10)
+```
+
+```haskell
+instance Show Int where
+    show 0 = "0"
+    show 1 = "1"
+    show 2 = "2"
+    -- ...
+    show 9 = "9"
+    show x = if x < 0
+             then "-" ++ show (negate x)
+             else show (x `div` 10) ++ show (x `mod` 10)
+```
+---
+# Typeclass Syntax
+```haskell
+say :: a -> String
+say x = "안녕 나는 \"" ++ (show??? x) ++ "\"(이)라고 해"
+```
+
+`=>`와 함께 제약조건(constraint)을 추가할 수 있습니다.
+```haskell
+say :: (Show a) => a -> String
+say x = "안녕 나는 \"" ++ (show x) ++ "\"(이)라고 해"
+```
+
+```haskell
+instance (Show a) => Show [a] where
+    show x = "[" ++ (intercalate “, “ (map show x)) ++ "]"
+```
+---
+# Typeclass Syntax
+- 서로 다른 데이터 타입 간의 공통된 특성을 타입클래스로서 정의한다.
+
+```haskell
+class Show a where
+    show :: a -> String
+```
+
+- 타입클래스의 인스턴스는, 해당 타입클래스가 주어진 타입에 대하여 어떻게 동작해야 하는지를 명시한다.
+
+```haskell
+instance Show Bool where
+    show True = “True”
+    show False = “False”
+```
+
+- 타입 변수에 기존에 명시한 타입클래스를 제약조건으로서 추가할 수 있다.
+
+```haskell
+say :: (Show a) => a -> String
+say x = "안녕 나는 \"" ++ (show x) ++ "\"(이)라고 해"
+```
+
+---
+# 다른 Typeclass 소개
+
+```haskell
+class Eq a where
+    (==) :: a -> a -> Bool
+    (/=) :: a -> a -> Bool
+```
+
+```haskell
+class Num a where
+    (+) :: a -> a -> a
+    (*) :: a -> a -> a
+    (-) :: a -> a -> a
+    negate :: a -> a
+    abs :: a -> a
+    signum :: a -> a fromInteger :: Integer -> a
+```
+
+```haskell
+class Eq a => Ord a where
+    compare :: a -> a -> Ordering
+    (<) :: a -> a -> Bool
+    (>=) :: a -> a -> Bool
+    (>) :: a -> a -> Bool
+    (<=) :: a -> a -> Bool
+    max :: a -> a -> a
+    min :: a -> a -> a
+```
+---
+
+# deriving
+
+```haskell
+data Circle = Circle Float Float Float (Show, Eq)
+```
+
+> In Haskell we have derived instances so that obvious or common typeclasses, such as Eq, Enum, Ord, and Show can have the instances generated based only on how the datatype is defined. This is so programmers can make use of these conveniences without writing the code themselves, over and over.
+>
+> <cite> Christopher Allen, Julie Moronuki, _Haskell Programming_, p. 213</cite>
+
+---
+
+# Polymorphism
+> A function is polymorphic when its type signature has variables that can represent more than one type. That is, its parameters are polymorphic.
+>
+> <cite> Christopher Allen, Julie Moronuki, _Haskell Programming_, p. 139</cite>
+
+In Haskell,
+- parametric polymorphism (fully polymorphic parameters)
+- constrainted polymorphism (a.k.a ad hoc polymorphism)
+
+```haskell
+foo :: a -> a
+```
+
+```haskell
+bar :: (Num a) => a -> a
+```
+
+---
+# Links
+- https://www.schoolofhaskell.com/school/starting-with-haskell/introduction-to-haskell/5-type-classes
+- http://learnyouahaskell.com/making-our-own-types-and-typeclasses#typeclasses-102
+- http://haskellbook.com/
+- https://en.wikipedia.org/wiki/Polymorphism_(computer_science)
+- http://stackoverflow.com/questions/3864647/how-does-deriving-work-in-haskell
+
+---
+# Thank you
+
+정용욱
+
+하스켈학교
+
+[ywj1022@gmail.com](mailto:ywj1022@gmail.com)
+
+
+
+    </textarea>
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
