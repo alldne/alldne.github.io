@@ -412,7 +412,7 @@ class Eq a => Ord a where
 # deriving
 
 ```haskell
-data Circle = Circle Float Float Float (Show, Eq)
+data Circle = Circle Float Float Float deriving (Show, Eq)
 ```
 
 > In Haskell we have derived instances so that obvious or common typeclasses, such as Eq, Enum, Ord, and Show can have the instances generated based only on how the datatype is defined. This is so programmers can make use of these conveniences without writing the code themselves, over and over.
@@ -439,12 +439,20 @@ bar :: (Num a) => a -> a
 ```
 
 ---
+# 한 걸음 더..
+
+- Multi-parameter type classes
+- Functional dependencies
+- Constructor class
+
+---
 # Links
 - https://www.schoolofhaskell.com/school/starting-with-haskell/introduction-to-haskell/5-type-classes
 - http://learnyouahaskell.com/making-our-own-types-and-typeclasses#typeclasses-102
 - http://haskellbook.com/
 - https://en.wikipedia.org/wiki/Polymorphism_(computer_science)
 - http://stackoverflow.com/questions/3864647/how-does-deriving-work-in-haskell
+- https://en.wikipedia.org/wiki/Type_class
 
 ---
 # Thank you
